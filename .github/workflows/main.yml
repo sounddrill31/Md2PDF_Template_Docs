@@ -41,7 +41,7 @@ jobs:
           echo "PDFFILE=$PDFFILE" >> $GITHUB_OUTPUT
 
       - name: Generate PDF
-        uses: docker://pandoc/core:latest-ubuntu
+        uses: docker://pandoc/extra:latest-ubuntu
         with:
           args: >-
             README.md
@@ -52,7 +52,7 @@ jobs:
             -o "out/${{ steps.date.outputs.PDFFILE }}.pdf"
 
       - name: Generate Website
-        uses: docker://pandoc/core:latest-ubuntu
+        uses: docker://pandoc/extra:latest-ubuntu
         with:
           args: >-
             README.md
