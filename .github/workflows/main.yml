@@ -31,11 +31,14 @@ jobs:
           mkdir -p out
           mkdir -p dist
 
-      - name: Get current date and more
+      - name: Get current date and filename
         id: date
         run: |
-          echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-          echo "PDFFILE=$(echo '$(echo '${{ github.repository }}' | cut -d '/' -f 2)_${{ steps.date.outputs.DATE }}.pdf" >> $GITHUB_OUTPUT
+          DATE=$(date +'%Y-%m-%d')
+          REPO_NAME=$(echo '${{ github.repository }}' | cut -d '/' -f 2)
+          PDFFILE="report_${REPO_NAME}_${DATE}.pdf"
+          echo "DATE=$DATE" >> $GITHUB_OUTPUT
+          echo "PDFFILE=$PDFFILE" >> $GITHUB_OUTPUT
 
       - name: Generate PDF
         uses: docker://pandoc/core:latest-ubuntu
