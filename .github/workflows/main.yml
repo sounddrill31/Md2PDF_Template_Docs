@@ -26,6 +26,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc weasyprint
+
       - name: Create output directories
         run: |
           mkdir -p out
@@ -41,25 +46,20 @@ jobs:
           echo "PDFFILE=$PDFFILE" >> $GITHUB_OUTPUT
 
       - name: Generate PDF
-        uses: docker://pandoc/extra:latest-ubuntu
-        with:
-          args: >-
-            README.md
-            -s
-            -t html
-            --metadata title="${{ github.repository }}"
-            -c style.css
-            -o "out/${{ steps.date.outputs.PDFFILE }}.pdf"
+        run: |
+          pandoc README.md \
+            --pdf-engine=weasyprint \
+            -c style.css \
+            --metadata title="${{ github.repository }}" \
+            -o "out/${{ steps.date.outputs.PDFFILE }}"
 
       - name: Generate Website
-        uses: docker://pandoc/extra:latest-ubuntu
-        with:
-          args: >-
-            README.md
-            -s
-            -t html
-            --metadata title="${{ github.repository }}"
-            -c style.css
+        run: |
+          pandoc README.md \
+            -s \
+            --metadata title="${{ github.repository }}" \
+            -c style.css \
+            -t html \
             -o dist/index.html
 
       - name: Upload PDF artifact
