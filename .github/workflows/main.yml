@@ -61,6 +61,8 @@ jobs:
             -c style.css \
             -t html \
             -o dist/index.html
+          
+          mv style.css dist/
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
