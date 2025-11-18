@@ -59,7 +59,6 @@ jobs:
             -s \
             --metadata title="${{ github.repository }}" \
             -c style.css \
-            -t html \
             -o dist/index.html
           
           mv style.css dist/
@@ -83,6 +82,7 @@ jobs:
         with:
           tag_name: v${{ steps.date.outputs.DATE }}
           name: Pandoc PDF from ${{ steps.date.outputs.DATE }}
+          draft: true
           files: out/*.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
