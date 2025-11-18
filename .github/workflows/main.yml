@@ -26,32 +26,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Pandoc and LaTeX
-        run: |
-          sudo apt-get update
-          # Install pandoc and a basic LaTeX environment for PDF generation
-          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-latex-extra
-
       - name: Create output directories
         run: |
           mkdir -p out
           mkdir -p dist
 
-      - name: Get current date
+      - name: Get current date and more
         id: date
-        run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        run: |
+          echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "PDFFILE=$(echo '$(echo '${{ github.repository }}' | cut -d '/' -f 2)_${{ steps.date.outputs.DATE }}.pdf" >> $GITHUB_OUTPUT
 
       - name: Generate PDF
-        run: |
-          # Get repository name from the GitHub context
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
-          echo "Generating PDF: out/report_${REPO_NAME}_${{ steps.date.outputs.DATE }}.pdf"
-          pandoc README.md -o "out/report_${REPO_NAME}_${{ steps.date.outputs.DATE }}.pdf"
+        uses: docker://pandoc/core:latest-ubuntu
+        with:
+          args: >-
+            README.md
+            -s
+            --metadata title="${{ github.repository }}"
+            -c style.css
+            -o "out/${{ steps.date.outputs.PDFFILE }}.pdf"
 
-      - name: Generate Website
-        run: |
-          # -s for standalone, -c to link the local CSS, -o for output
-          pandoc README.md -s --metadata title="${{ github.repository }}" -c style.css -o dist/index.html
+            - name: Generate Website
+        uses: docker://pandoc/core:latest-ubuntu
+        with:
+          args: >-
+            README.md
+            -s
+            --metadata title="${{ github.repository }}"
+            -c style.css
+            -o dist/index.html
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
@@ -60,19 +64,20 @@ jobs:
           path: out/
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: 'dist'
-      - name: Release
+
+      - name: Create Release
+        if: github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.run_id }}
-          name: Generated PDF Output
-          files: |
-            out/*.pdf
+          tag_name: v${{ steps.date.outputs.DATE }}
+          name: Pandoc PDF from ${{ steps.date.outputs.DATE }}
+          files: out/*.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
